@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Test name="Test" description="This is test case for getting peoples home planets.">
+    <Steps>
+        <Step name="First step" description="Get first 3 people and save homeworld urls.">
+            <HttpGet datasetName="homeworldUrls" scope="global" logHttpResponse="false" iterator="for iterator in [1, 2, 3]" iteratorJsonPathExpression="$.homeworld">
+                <Url>https://swapi.dev/api/people/${iterator}/?format=json</Url>
+                <Headers>
+                    <Header>
+                        <Key>Content-Type</Key>
+                        <Value>application/json</Value>
+                    </Header>
+                </Headers>
+            </HttpGet>
+            <Actions>
+                <PrintToConsole variableName="homeworldUrls"/>
+            </Actions>
+        </Step>
+        <Step name="Second step" description="Get homeworld names from homeworldUrls.">
+            <HttpGet datasetName="homeworldDetails" scope="global" logHttpResponse="false" iterator="for homeworldUrl in {{homeworldUrls}}" iteratorJsonPathExpression="$.name">
+                <Url>${homeworldUrl}?format=json</Url>
+                <Headers>
+                    <Header>
+                        <Key>Content-Type</Key>
+                        <Value>application/json</Value>
+                    </Header>
+                </Headers>
+            </HttpGet>
+            <Actions>
+                <PrintToConsole variableName="homeworldDetails"/>
+            </Actions>
+        </Step>
+    </Steps>
+</Test>

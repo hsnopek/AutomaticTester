@@ -1,0 +1,64 @@
+<Test name="PrintCodebooksForUsersTenant" description="Testing getting codebooks for users company.">
+    <Configuration>
+        <SecurityRules>
+            <SecurityRule
+                    sslEnabled="true"
+                    keyStore="C:\...\hsnopek-client.p12"
+                    keyStorePassword="changeit"
+                    trustStore="C:\...\truststore.jks"
+                    trustStorePassword="changeit"
+                    domain="localhost"
+                    port="9443"
+            />
+        </SecurityRules>
+    </Configuration>
+    <Steps>
+        <Step name="First step" description="Get access token and save it to global variable.">
+            <HttpPost datasetName="token" scope="global" logHttpResponse="false">
+                <Url>https://localhost:9443/api/v1/auth/authenticate</Url>
+                <Headers>
+                    <Header>
+                        <Key>Content-Type</Key>
+                        <Value>application/json</Value>
+                    </Header>
+                </Headers>
+                <Body>
+                    {"username":"jdoe", "password": "changeit"}
+                </Body>
+            </HttpPost>
+            <Actions>
+                <ParseJsonAndSetVariable scope="global" datasetName="token" jsonPathExpression="$.accessToken" variableName="accessToken"/>
+            </Actions>
+        </Step>
+        <Step name="Second step" description="Get current user details">
+            <HttpGet datasetName="userAccountDetails" scope="global" logHttpResponse="false" iterator="for userId in [1, 2, 3]" iteratorJsonPathExpression="$.companyId">
+                <Url>https://localhost:9443/api/v1/user-accounts/${userId}</Url>
+                <Headers>
+                    <Header>
+                        <Key>Content-Type</Key>
+                        <Value>application/json</Value>
+                    </Header>
+                    <Header>
+                        <Key>Authorization</Key>
+                        <Value>Bearer ${accessToken}</Value>
+                    </Header>
+                </Headers>
+            </HttpGet>
+        </Step>
+        <Step name="Third step" description="Get codebooks by tenantId">
+            <HttpGet datasetName="codebooks" scope="global" logHttpResponse="false" iterator="for companyId in ${{userAccountDetails}}">
+                <Url>https://localhost:9443/api/v1/companies/${companyId}/codebooks</Url>
+                <Headers>
+                    <Header>
+                        <Key>Content-Type</Key>
+                        <Value>application/json</Value>
+                    </Header>
+                    <Header>
+                        <Key>Authorization</Key>
+                        <Value>Bearer ${accessToken}</Value>
+                    </Header>
+                </Headers>
+            </HttpGet>
+        </Step>
+    </Steps>
+</Test>
